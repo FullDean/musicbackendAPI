@@ -3,10 +3,30 @@ const Artiste = require('../models/artiste');
 // Récupérer tous les artistes
 exports.getArtistes = async(req, res) => {
     try {
-        const result = await Artiste.find({});
+        const page = parseInt(req.query.page) || 1;
+        const size = parseInt(req.query.size) || 10;
+        const search = req.query.search || '';
+        // Calcul des paramètres de pagination
+        const limit = size;
+        const skip = (page - 1) * size;
+
+        // Recherche conditionnelle (par nom ou nom de scene)
+        const query = search ? { $or: [{nom: new RegExp(search, 'i')}, {nomScene: new RegExp(search, 'i')}]} : {};
+
+        // Récupération des artistes paginés
+        const result = await Artiste.find(query).skip(skip).limit(limit);
+
+        // Total d'artistes corresppndant à la recherche
+        const total = await Artiste.countDocuments(query)
+
         console.log(result);
         if(result){
-            res.status(200).json({result});
+            res.status(200).json({
+                result,
+                total,
+                totalPages: Math.ceil(total /size), // Nombre total de pages
+                currentPage: page, // Page actuelle
+            });
         }else{
             res.status(400).json({message: "No artistes found"});
         }
