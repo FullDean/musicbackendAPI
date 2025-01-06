@@ -1,4 +1,5 @@
 const Artiste = require('../models/artiste');
+const Rating = require('../models/rating');
 
 // Récupérer tous les artistes
 exports.getArtistes = async(req, res) => {
@@ -113,5 +114,25 @@ exports.deleteArtiste = async(req, res) => {
     } catch (error) {
         console.error(e);
         res.status(500).json({ msg: "Internal server error" });
+    }
+}
+
+
+// AJouter une note
+exports.addNote = async(req, res) => {
+    try {
+        const {id} = req.params;
+        const { note } = req.body;
+        const newRating = new Rating({
+            note: note,
+            artiste: id
+        });
+        console.log(req.body);
+
+        await newRating.save();
+        res.status(201).json({msg: "Nouvelle note ajoutée avec succès !"});
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({msg: "Internal server error"});
     }
 }
